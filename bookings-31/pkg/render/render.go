@@ -19,13 +19,15 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 		log.Fatal("RenderTemplate>", err)
 	}
 
+	// map에 원하는 페이지가 있는지 확인
 	t, ok := tc[tmpl]
 	if !ok {
 		log.Fatal("Could not get template from template cache")
 	}
-	buf := new(bytes.Buffer)
-	_ = t.Execute(buf, nil)
-	_, err = buf.WriteTo(w)
+
+	buf := new(bytes.Buffer) // buf 생성
+	_ = t.Execute(buf, nil)  // 해당 페이지를 buf 에 저장
+	_, err = buf.WriteTo(w)  // client 에게 전송
 	if err != nil {
 		fmt.Println("error writing template to browser", err)
 	}
@@ -54,9 +56,6 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		}
 
 		layouts, err := filepath.Glob("./templates/*.layout.tmpl")
-		// for i, layout := range layouts {
-		// 	log.Printf("layout(%d): %s", i, layout)
-		// }
 		if err != nil {
 			return myCache, err
 		}
@@ -64,7 +63,6 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		if len(layouts) > 0 {
 			// 페이지 정보에 base 정보 결함.
 			ts, err = ts.ParseGlob("./templates/*.layout.tmpl")
-			// log.Printf("ts2: %v\n", *ts)
 			if err != nil {
 				return myCache, err
 			}
