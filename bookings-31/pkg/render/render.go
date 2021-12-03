@@ -1,6 +1,7 @@
 package render
 
 import (
+	"GO/trevor/bookings-31/pkg/config"
 	"bytes"
 	"fmt"
 	"html/template"
@@ -11,12 +12,23 @@ import (
 
 var functions = template.FuncMap{}
 
+var app *config.AppConfig
+
+// NewTemplates sets the config for the template package
+func NewTemplates(a *config.AppConfig) {
+	app = a
+}
+
 // RenderTemplate renders a template
 func RenderTemplate(w http.ResponseWriter, tmpl string) {
+	var tc map[string]*template.Template
 
-	tc, err := CreateTemplateCache()
-	if err != nil {
-		log.Fatal("RenderTemplate>", err)
+	if app.UseCache {
+		// get the template cache from the app config
+		tc = app.TemplateCache
+	} else {
+		// DEV mode 에서는 UseCache==false 이므로. read cache everytime.
+		tc, _ = CreateTemplateCache()
 	}
 
 	// map에 원하는 페이지가 있는지 확인
@@ -27,7 +39,7 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 
 	buf := new(bytes.Buffer) // buf 생성
 	_ = t.Execute(buf, nil)  // 해당 페이지를 buf 에 저장
-	_, err = buf.WriteTo(w)  // client 에게 전송
+	_, err := buf.WriteTo(w) // client 에게 전송
 	if err != nil {
 		fmt.Println("error writing template to browser", err)
 	}
